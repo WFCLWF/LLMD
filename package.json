@@ -6,7 +6,7 @@
   "scripts": {
     "dev:vue": "vite",
     "build:vue": "vite build",
-    "dev": "concurrently \"vite\" \"wait-on http://localhost:5173 && electron .\"",
+    "dev": "concurrently \"vite\" \"wait-on http://localhost:5173 && electron . --dev\"",
     "build": "vite build && electron .",
     "start": "electron ."
   },

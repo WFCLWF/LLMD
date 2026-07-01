@@ -14,6 +14,8 @@
       <el-button class="new-chat-btn" @click="$emit('new-chat')" :icon="Plus">新对话</el-button>
     </div>
 
+    <QuickLaunch />
+
     <div class="conversation-list">
       <div class="conv-section-header">
         <span class="conv-section-title">对话历史</span>
@@ -56,6 +58,7 @@
 <script setup>
 import { ref, computed } from 'vue';
 import { Plus, ChatDotRound, Close, Setting } from '@element-plus/icons-vue';
+import QuickLaunch from './QuickLaunch.vue';
 import { ElMessageBox } from 'element-plus';
 
 const props = defineProps({ collapsed: Boolean, conversations: Array, currentConvId: String, backendStatus: String });

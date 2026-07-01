@@ -6,18 +6,12 @@ import httpx
 from fastapi.middleware.cors import CORSMiddleware
 from llm_chat import LLMChat
 from config_manager import ConfigManager
+from conversation_store import ConversationStore
 
 
 # 请求体
 class chat_request(pydantic.BaseModel):
     user_input: str
-
-
-# 响应体
-class chat_response(pydantic.BaseModel):
-    code: int
-    message: str
-    data: dict
 
 
 # 配置请求体
@@ -27,9 +21,16 @@ class config_request(pydantic.BaseModel):
     model: str = None
 
 
+# 会话持久化请求体
+class conversations_request(pydantic.BaseModel):
+    conversations: list = []
+    currentConvId: str = None
+
+
 app = FastAPI()
 llmchat = LLMChat()
 config_manager = ConfigManager()
+conversation_store = ConversationStore()
 
 # 复用 httpx 客户端，避免每次请求重新建立连接
 http_client = httpx.AsyncClient(timeout=5.0)
@@ -116,7 +117,45 @@ async def update_config(config_data: config_request):
         }
 
 
+# ==================== 会话持久化接口 ====================
+
+@app.get("/api/conversations")
+async def get_conversations():
+    return {"code": 200, "message": "ok", "data": conversation_store.load()}
+
+
+@app.post("/api/conversations")
+async def save_conversations(req: conversations_request):
+    ok = conversation_store.save(req.conversations, req.currentConvId)
+    return {"code": 200 if ok else 500, "message": "ok" if ok else "保存会话失败"}
+
+
+# ==================== 快捷启动接口 ====================
+import json as _json
+from pathlib import Path as _Path
+
+_SHORTCUTS_PATH = _Path(__file__).parent / "shortcuts.json"
+
+class _shortcuts_body(pydantic.BaseModel):
+    data: list = []
+
+@app.get("/api/shortcuts")
+async def get_shortcuts():
+    try:
+        if _SHORTCUTS_PATH.exists():
+            return {"code": 200, "data": _json.loads(_SHORTCUTS_PATH.read_text(encoding="utf-8"))}
+    except Exception:
+        pass
+    return {"code": 200, "data": []}
+
+@app.post("/api/shortcuts")
+async def save_shortcuts(req: _shortcuts_body):
+    try:
+        _SHORTCUTS_PATH.write_text(_json.dumps(req.data, indent=2, ensure_ascii=False), encoding="utf-8")
+        return {"code": 200}
+    except Exception:
+        return {"code": 500}
+
+
 if __name__ == "__main__":
-    import sys, os
-    sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
     uvicorn.run("chat_api:app", host="127.0.0.1", port=8054, reload=True)

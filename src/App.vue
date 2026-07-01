@@ -43,7 +43,7 @@
 </template>
 
 <script setup>
-import { ref, reactive, nextTick } from 'vue';
+import { ref, reactive, nextTick, onMounted } from 'vue';
 import { ElMessage } from 'element-plus';
 import Sidebar from './components/Sidebar.vue';
 import WelcomeScreen from './components/WelcomeScreen.vue';
@@ -51,6 +51,7 @@ import ChatWindow from './components/ChatWindow.vue';
 import ChatInput from './components/ChatInput.vue';
 import SettingsModal from './components/SettingsModal.vue';
 import { chatStream, getConfig } from './api/index.js';
+import { loadFromStorage, saveToStorage } from './storage/index.js';
 
 const sidebarCollapsed = ref(false);
 const showSettings = ref(false);
@@ -63,16 +64,50 @@ const chatWindowRef = ref(null);
 const chatInputRef = ref(null);
 let abortController = null;
 
+// 1. 异步恢复会话（不阻塞渲染，加载完成后自动刷新 UI）
+loadAndRestore();
+// 2. 检测后端连接（异步，带重试）
 initBackend();
-
-async function initBackend() {
-  try { await getConfig(); backendStatus.value = 'online'; }
-  catch { backendStatus.value = 'error'; }
+// 3. 启动后自动聚焦输入框
+onMounted(() => { setTimeout(() => chatInputRef.value?.focus(), 100); });
+// 4. 持久化工具：防抖保存（50ms，流式场景合并高频写入）
+let saveTimer = null;
+function scheduleSave() {
+  clearTimeout(saveTimer);
+  saveTimer = setTimeout(() => saveToStorage(conversations, currentConvId.value), 50);
 }
 
-function minimizeWindow() { window.electronApi?.minimize?.(); }
-function toggleMaximize() { window.electronApi?.maximize?.(); }
-function closeWindow() { window.electronApi?.close?.(); }
+async function initBackend(retries = 3) {
+  backendStatus.value = 'connecting';
+  for (let i = 0; i < retries; i++) {
+    try {
+      await getConfig();
+      backendStatus.value = 'online';
+      return;
+    } catch {
+      if (i < retries - 1) {
+        await new Promise(r => setTimeout(r, 1000 * (i + 1)));  // 1s, 2s, 3s 退避
+      }
+    }
+  }
+  backendStatus.value = 'error';
+}
+
+/** 从持久层恢复会话列表（侧边栏），但默认进入新对话 */
+async function loadAndRestore() {
+  const saved = await loadFromStorage();
+  if (!saved || saved.conversations.length === 0) return;
+  // 仅恢复侧边栏会话列表，不恢复上一次的对话内容
+  conversations.push(...saved.conversations);
+}
+
+const truncate = (s, n = 30) => s.length > n ? s.slice(0, n) + '...' : s;
+const minimizeWindow = () => window.electronApi?.minimize?.();
+const toggleMaximize = () => window.electronApi?.maximize?.();
+function closeWindow() {
+  const plain = JSON.parse(JSON.stringify(conversations));
+  window.electronApi?.closeWithSave?.({ conversations: plain, currentConvId: currentConvId.value || null });
+}
 
 function newConversation() {
   if (isStreaming.value) return;
@@ -80,7 +115,8 @@ function newConversation() {
   conversations.unshift(conv);
   currentConvId.value = conv.id;
   messages.length = 0;
-  nextTick(() => chatInputRef.value?.focus());
+  scheduleSave();
+  setTimeout(() => chatInputRef.value?.focus(), 50);
 }
 
 function selectConversation(id) {
@@ -89,13 +125,17 @@ function selectConversation(id) {
   currentConvId.value = id;
   messages.length = 0;
   messages.push(...conv.messages);
-  nextTick(() => scrollToBottom());
+  scheduleSave();
+  nextTick(() => chatWindowRef.value?.scrollToBottom());
+  // 延迟聚焦：等 Sidebar click 事件完全结束后再切焦点，避免被浏览器归还焦点覆盖
+  setTimeout(() => chatInputRef.value?.focus(), 50);
 }
 
 function deleteConversation(id) {
   const idx = conversations.findIndex(c => c.id === id);
   if (idx !== -1) conversations.splice(idx, 1);
   if (currentConvId.value === id) { currentConvId.value = null; messages.length = 0; }
+  scheduleSave();
 }
 
 function deleteSelectedConversations(ids) { ids.forEach(id => deleteConversation(id)); }
@@ -104,18 +144,17 @@ async function handleSend(userText) {
   if (isStreaming.value || !userText.trim()) return;
 
   if (!currentConvId.value) {
-    const title = userText.length > 30 ? userText.slice(0, 30) + '...' : userText;
-    const conv = { id: Date.now().toString(), title, messages: [] };
+    const conv = { id: Date.now().toString(), title: truncate(userText), messages: [] };
     conversations.unshift(conv);
     currentConvId.value = conv.id;
   }
 
   const conv = conversations.find(c => c.id === currentConvId.value);
-  if (conv && conv.messages.length === 0)
-    conv.title = userText.length > 30 ? userText.slice(0, 30) + '...' : userText;
+  if (conv && conv.messages.length === 0) conv.title = truncate(userText);
 
   messages.push({ role: 'user', content: userText });
   if (conv) conv.messages.push({ role: 'user', content: userText });
+  scheduleSave();  // 用户消息立即触发存盘
 
   isStreaming.value = true;
   backendStatus.value = 'connecting';
@@ -124,7 +163,7 @@ async function handleSend(userText) {
   messages.push(aiMsg);
   if (conv) conv.messages.push(aiMsg);
 
-  nextTick(() => { scrollToBottom(); chatInputRef.value?.focus(); });
+  nextTick(() => { chatWindowRef.value?.scrollToBottom(); chatInputRef.value?.focus(); });
 
   try {
     abortController = new AbortController();
@@ -138,17 +177,15 @@ async function handleSend(userText) {
 
       buffer += decoder.decode(value, { stream: true });
       const lines = buffer.split('\n');
-      for (let i = 0; i < lines.length - 1; i++) {
-        const line = lines[i];
+      buffer = lines.pop();  // 最后一段可能不完整，留到下次拼接
+      for (const line of lines) {
         if (line.startsWith('data: ')) {
-          const content = line.slice(6);
-          if (content) {
-            aiMsg.content += content.replace(/\r/g, '\n');
-            nextTick(() => scrollToBottom());
-          }
+          const text = line.slice(6);
+          if (text) aiMsg.content += text.replace(/\r/g, '\n');
         }
       }
-      buffer = lines[lines.length - 1];
+      scheduleSave();
+      nextTick(() => chatWindowRef.value?.scrollToBottom());
     }
     backendStatus.value = 'online';
   } catch (e) {
@@ -160,7 +197,8 @@ async function handleSend(userText) {
   } finally {
     isStreaming.value = false;
     abortController = null;
-    nextTick(() => scrollToBottom());
+    scheduleSave();  // 流式结束/出错后最终存盘
+    nextTick(() => chatWindowRef.value?.scrollToBottom());
   }
 }
 
@@ -169,13 +207,14 @@ function stopStreaming() {
 }
 
 async function openSettings() {
+  // 打开设置时顺带刷新后端连接状态
+  if (backendStatus.value !== 'online') initBackend();
   try { await getConfig(); } catch {}
   showSettings.value = true;
 }
 
 function onConfigSaved() { initBackend(); }
 
-function scrollToBottom() { chatWindowRef.value?.scrollToBottom(); }
 </script>
 
 <style scoped>
