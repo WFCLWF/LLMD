@@ -1,6 +1,6 @@
 {
   "api": {
-    "api_key": "your_key_here",
+    "api_key": "aa",
     "base_url": "https://api.deepseek.com",
     "model": "deepseek-v4-flash"
   },
