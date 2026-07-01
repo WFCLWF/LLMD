@@ -38,3 +38,4 @@ Thumbs.db
 dist/
 
 backend/conversations.txt
+backend/config.json
