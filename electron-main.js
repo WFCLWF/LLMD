@@ -3,8 +3,8 @@ const path = require('path');
 const fs = require('fs');
 
 const isDev = process.argv.includes('--dev') || process.env.NODE_ENV === 'development';
-const CONV_PATH = path.join(__dirname, 'backend', 'conversations.txt');
-const SHORTCUTS_PATH = path.join(__dirname, 'backend', 'shortcuts.json');
+const CONV_PATH = path.join(__dirname, 'backend', 'data', 'conversations.txt');
+const SHORTCUTS_PATH = path.join(__dirname, 'backend', 'data', 'shortcuts.json');
 
 function createWindow() {
   const win = new BrowserWindow({

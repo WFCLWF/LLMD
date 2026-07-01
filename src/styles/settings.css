@@ -1,0 +1,99 @@
+/* SettingsModal.vue scoped styles */
+
+.dialog-footer {
+  display: flex; justify-content: space-between; align-items: center;
+}
+
+/* ---- 对话框框架 ---- */
+:deep(.el-dialog) {
+  border-radius: 12px; box-shadow: var(--shadow-lg);
+  background: var(--bg-modal) !important;
+}
+:deep(.el-dialog__header) {
+  border-bottom: 1px solid var(--border-light); padding: 14px 18px; margin: 0;
+}
+:deep(.el-dialog__title) { font-size: 15px; font-weight: 600; color: var(--text-primary); }
+:deep(.el-dialog__body) { padding: 14px 18px; }
+:deep(.el-dialog__footer) {
+  border-top: 1px solid var(--border-light); padding: 12px 18px;
+}
+
+/* ---- 表单 ---- */
+:deep(.el-form-item__label) { font-size: 12px; font-weight: 500; color: var(--text-secondary) !important; }
+:deep(.el-input__wrapper) {
+  border-radius: 7px;
+  background: var(--bg-card) !important;
+  box-shadow: 0 0 0 1px var(--border-color) !important;
+}
+:deep(.el-input__wrapper:hover) { box-shadow: 0 0 0 1px var(--accent) !important; }
+:deep(.el-input__wrapper.is-focus) {
+  box-shadow: 0 0 0 1px var(--accent), 0 0 0 3px var(--accent-bg) !important;
+}
+:deep(.el-input__inner) { color: var(--text-primary) !important; }
+:deep(.el-input__inner::placeholder) { color: var(--text-tertiary) !important; }
+
+/* ---- Tabs ---- */
+:deep(.el-tabs__header) { margin-bottom: 12px; }
+:deep(.el-tabs__item) {
+  font-size: 13px; font-weight: 500; color: var(--text-secondary);
+}
+:deep(.el-tabs__item.is-active) { color: var(--accent); }
+:deep(.el-tabs__active-bar) { background-color: var(--accent); }
+:deep(.el-tabs__nav-wrap::after) { background-color: var(--border-light); }
+.settings-form { min-height: 180px; }
+
+/* ---- 系统配色 ---- */
+.theme-grid { display: flex; flex-wrap: wrap; gap: 10px; min-height: 180px; }
+.theme-card {
+  display: flex; align-items: center; gap: 8px;
+  width: calc(50% - 5px); padding: 12px 14px;
+  border-radius: 8px; cursor: pointer; transition: all 0.2s;
+  border: 1px solid var(--border-light);
+  background: var(--bg-card); position: relative;
+}
+.theme-card:hover { border-color: var(--accent); }
+.theme-card.active {
+  border-color: var(--accent);
+  background: var(--accent-bg);
+  box-shadow: 0 0 0 2px var(--accent-ring);
+}
+.theme-dot {
+  width: 18px; height: 18px; border-radius: 50%; flex-shrink: 0;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.12);
+}
+.theme-name { font-size: 13px; font-weight: 500; color: var(--text-primary); flex: 1; }
+.theme-check { font-size: 14px; color: var(--accent); font-weight: 700; flex-shrink: 0; }
+
+/* ---- MCP JSON 编辑器 ---- */
+.mcp-panel { display: flex; flex-direction: column; gap: 8px; min-height: 180px; }
+.mcp-toolbar {
+  display: flex; align-items: center; justify-content: space-between;
+  flex-shrink: 0;
+}
+.mcp-hint { font-size: 12px; color: var(--text-tertiary); }
+.mcp-actions { display: flex; gap: 2px; }
+
+.mcp-editor :deep(.el-textarea__inner) {
+  font-family: "SF Mono", "Fira Code", "Courier New", monospace;
+  font-size: 12px; line-height: 1.55;
+  min-height: 320px;
+  border-radius: 7px;
+  resize: vertical;
+  background: var(--bg-card) !important;
+  color: var(--text-primary) !important;
+  border-color: var(--border-color);
+}
+.mcp-editor.has-error :deep(.el-textarea__inner) { border-color: var(--danger); }
+.mcp-error { font-size: 11px; color: var(--danger); margin: 0; line-height: 1.4; }
+
+/* ---- Select ---- */
+:deep(.el-select .el-input__wrapper) { background: var(--bg-card) !important; }
+
+/* ---- 按钮 ---- */
+:deep(.el-button--primary) {
+  --el-button-bg-color: var(--accent);
+  --el-button-border-color: var(--accent);
+  --el-button-hover-bg-color: var(--accent-hover);
+  --el-button-hover-border-color: var(--accent-hover);
+}
+:deep(.el-button) { --el-button-text-color: var(--text-primary); }

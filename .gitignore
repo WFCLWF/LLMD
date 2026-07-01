@@ -24,19 +24,13 @@ config.local.json
 .env
 .env.local
 chat_history.json
-conversations.txt
-backend/conversations.txt
-backend/shortcuts.json
-backend/theme.json
 
 # 系统文件
 Thumbs.db
-.DS_Store
 
-.gitignore
-
-
+# Electron 构建产物
 dist/
 
-backend/conversations.txt
-backend/config.json
+# 后端配置及运行时数据（敏感信息，不入库）
+backend/config/
+backend/data/

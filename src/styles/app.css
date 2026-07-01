@@ -1,0 +1,54 @@
+/* App.vue scoped styles */
+
+.app-container {
+  display: flex; height: 100vh; width: 100vw; overflow: hidden; border-radius: 12px;
+  position: relative; border: 2px solid var(--accent);
+  box-shadow: 0 0 0 1px rgba(0,0,0,0.08), 0 8px 32px rgba(0,0,0,0.18);
+}
+
+/* 侧边栏折叠拉出按钮 */
+.pull-handle {
+  position: absolute; left: 6px; top: 50%; transform: translateY(-50%);
+  width: 28px; height: 28px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  background: color-mix(in srgb, var(--accent) 45%, transparent); backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  cursor: pointer; z-index: 200; color: #fff;
+  transition: all 0.25s cubic-bezier(0.34,1.56,0.64,1);
+  border: 2px solid color-mix(in srgb, var(--accent) 55%, transparent);
+  animation: handleIn 0.4s 0.3s cubic-bezier(0.34,1.56,0.64,1) both;
+}
+@keyframes handleIn {
+  from { opacity: 0; transform: translateY(-50%) translateX(-12px); }
+  to   { opacity: 1; transform: translateY(-50%) translateX(0); }
+}
+.pull-handle:hover {
+  background: color-mix(in srgb, var(--accent) 72%, transparent); color: #fff;
+  box-shadow: 0 2px 12px color-mix(in srgb, var(--accent) 30%, transparent);
+  transform: translateY(-50%) scale(1.15);
+}
+
+/* 主内容 */
+.main-content {
+  flex: 1; display: flex; flex-direction: column; min-width: 0; height: 100vh;
+  position: relative;
+  background: var(--bg-main);
+  backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
+}
+
+/* 标题栏（拖拽区） */
+.title-bar {
+  height: 32px; display: flex; align-items: center; flex-shrink: 0;
+  -webkit-app-region: drag; user-select: none;
+}
+.drag-region { flex: 1; height: 100%; }
+
+/* 窗口控制按钮 */
+.window-controls { display: flex; -webkit-app-region: no-drag; }
+.win-btn {
+  width: 36px; height: 28px; background: none; border: none;
+  color: var(--text-secondary); cursor: pointer;
+  display: flex; align-items: center; justify-content: center; transition: all 0.15s;
+}
+.win-btn:hover { background: rgba(0,0,0,0.06); color: var(--text-primary); }
+.win-close:hover { background: var(--danger); color: #fff; }

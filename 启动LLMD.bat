@@ -14,7 +14,7 @@ REM Try conda env, fallback to system python
 where conda >nul 2>nul && call conda activate LLMD 2>nul
 
 echo   [1/2] Starting Python backend on port 8054 ...
-start "LLMD Backend" /min cmd /c "cd /d "%~dp0" && python backend\chat_api.py"
+start "LLMD Backend" /min cmd /c "cd /d "%~dp0" && python backend\main.py"
 
 echo   [2/2] Starting frontend (Vite + Electron) ...
 start "LLMD Frontend" /min cmd /c "cd /d "%~dp0" && npm run dev"

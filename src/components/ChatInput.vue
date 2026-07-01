@@ -47,35 +47,5 @@ defineExpose({ focus });
 </script>
 
 <style scoped>
-.chat-input-area { padding: 12px 18px 10px; flex-shrink: 0; }
-.input-wrapper {
-  max-width: 700px; margin: 0 auto; display: flex; align-items: flex-end; gap: 6px;
-  background: var(--bg-input); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
-  border: 1px solid var(--border-color); border-radius: var(--radius-lg);
-  padding: 6px 6px 6px 14px; transition: border-color 0.2s, box-shadow 0.2s;
-}
-.input-wrapper:focus-within {
-  border-color: var(--accent);
-  box-shadow: 0 0 0 3px rgba(140,192,235,0.18);
-}
-.chat-input {
-  flex: 1; background: none; border: none; outline: none; color: var(--text-primary);
-  font-size: 14px; font-family: inherit; line-height: 1.5; resize: none;
-  min-height: 22px; max-height: 180px; padding: 3px 0;
-}
-.chat-input::placeholder { color: var(--text-tertiary); }
-.chat-input:disabled { opacity: 0.6; }
-
-.send-btn,.stop-btn {
-  width: 34px; height: 34px; border-radius: 50%; border: none; cursor: pointer;
-  display: flex; align-items: center; justify-content: center; flex-shrink: 0; transition: all 0.2s; padding: 0;
-}
-.send-btn { background: var(--accent); color: #fff; }
-.send-btn:hover:not(:disabled) { background: var(--accent-hover); transform: scale(1.05); }
-.send-btn:active:not(:disabled) { transform: scale(0.95); }
-.send-btn:disabled { opacity: 0.35; cursor: not-allowed; transform: none; }
-.stop-btn { background: #e81123; color: #fff; }
-.stop-btn:hover { background: #c00; }
-
-.input-disclaimer { text-align: center; font-size: 11px; color: var(--text-tertiary); margin-top: 6px; max-width: 700px; margin-inline: auto; }
+@import url('../styles/chat-input.css');
 </style>

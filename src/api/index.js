@@ -1,11 +1,11 @@
 // API 服务模块
 const BASE_URL = 'http://127.0.0.1:8054';
 
-export async function chatStream(userInput, history = []) {
-  const response = await fetch(`${BASE_URL}/api/chat`, {
+export async function chatStream(userInput, history = [], threadId = 'default') {
+  const response = await fetch(`${BASE_URL}/api/agent`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ user_input: userInput, messages: history }),
+    body: JSON.stringify({ user_input: userInput, messages: history, thread_id: threadId }),
   });
   if (!response.ok) throw new Error(`HTTP ${response.status}`);
   return response.body.getReader();
@@ -50,7 +50,30 @@ export async function saveConversations(conversations, currentConvId) {
   return response.json();
 }
 
-// ==================== 快捷启动接口 ====================
+// ==================== MCP 管理接口 ====================
+
+export async function getMcpConfig() {
+  const resp = await fetch(`${BASE_URL}/api/mcp/config`);
+  if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+  return resp.json();
+}
+
+export async function saveMcpConfig(config) {
+  const resp = await fetch(`${BASE_URL}/api/mcp/config`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ config }),
+  });
+  if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+  return resp.json();
+}
+
+export async function getMcpServers() {
+  const resp = await fetch(`${BASE_URL}/api/mcp/servers`);
+  if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+  const result = await resp.json();
+  return result.data || [];
+}
 
 export async function loadShortcuts() {
   const resp = await fetch(`${BASE_URL}/api/shortcuts`);

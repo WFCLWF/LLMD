@@ -1,164 +1,147 @@
-# LLMD — 智能 AI 对话桌面应用
+# LLMD
 
-基于 **Vue 3 + Element Plus + Electron + FastAPI** 的跨平台桌面 AI 助手。半透明毛玻璃窗口，支持 DeepSeek 及全部 OpenAI 兼容接口。
-
----
+基于 LLM 的智能桌面助手，支持多模型切换、MCP 工具集成、会话记忆和主题定制。
 
 ## 功能
 
-- 💬 **流式对话** — SSE 逐字输出，支持随时停止生成
-- 🪟 **半透明窗口** — 毛玻璃模糊背景，圆角边框 + 外阴影，桌面融为一体
-- 🎨 **5 套主题** — 暖桃 / 深海 / 藕紫 / 薄荷 / 暮色，热切换即时生效
-- 📂 **会话管理** — 侧边栏多轮对话历史，默认折叠，`Ctrl+↑↓` 切换
-- ⚡ **快捷启动** — 侧边栏图标式应用启动器，右键删除，存盘持久化
-- 📋 **代码复制** — 悬停图标按钮，SVG 图标 + 对勾反馈
-- ⌨️ **全键盘** — Enter 聚焦 / Esc 失焦 / Ctrl+方向键 / Delete 删除会话
-- 🔄 **持久化** — 所有数据本地存盘，重启不丢
+- **对话 & 编程** — 多轮对话、代码生成、信息检索
+- **双模式** — LLM 直调 + Agent 模式（带 MCP 工具调用）
+- **MCP 集成** — 支持 `streamable_http` / `stdio`，配置文件热加载
+- **会话记忆** — Agent 模式 SQLite 持久化，重启不丢失
+- **主题配色** — 暖桃 / 深海 / 藕紫 / 薄荷 / 暮色，即时切换
 
----
+## 技术栈
 
-## 快速开始
-
-### 环境
-
-- Node.js ≥ 16
-- Python ≥ 3.8
-
-### 安装
-
-```bash
-npm install
-pip install fastapi uvicorn pydantic httpx openai
-```
-
-### 配置
-
-应用内打开 **设置** 面板填写，或直接编辑 `backend/config.json`：
-
-```json
-{
-  "api": {
-    "api_key": "你的-API-KEY",
-    "base_url": "https://api.deepseek.com",
-    "model": "deepseek-v4-flash"
-  }
-}
-```
-
-### 启动
-
-```bash
-# 终端 1 — 后端 :8054
-python backend/chat_api.py
-
-# 终端 2 — 前端 Electron
-npm run dev
-```
-
-仅浏览器预览：`npm run dev:vue` → `http://localhost:5173`
-
----
-
-## 交互方式
-
-### 侧边栏
-
-启动时默认折叠。左侧边缘有圆形毛玻璃按钮，点击拉出。点击主内容区域自动收起。`Ctrl+←→` 也可控制。
-
-### 快捷键
-
-| 操作 | 快捷键 |
-|------|--------|
-| 聚焦输入框 | `Enter`（输入框外） |
-| 取消焦点 | `Esc`（输入框内） |
-| 发送消息 | `Enter`（输入框内） |
-| 换行 | `Shift + Enter` |
-| 折叠侧边栏 | `Ctrl + ←` |
-| 展开侧边栏 | `Ctrl + →` |
-| 上一个会话 | `Ctrl + ↑` |
-| 下一个会话 | `Ctrl + ↓` |
-| 删除当前会话 | `Delete` |
-| 最大化 / 还原 | 双击标题栏 |
-
----
-
-## API 接口
-
-| 方法 | 路径 | 说明 |
-|------|------|------|
-| `POST` | `/api/chat` | 流式对话 (SSE) |
-| `GET` | `/api/config` | 获取 API 配置 |
-| `POST` | `/api/config` | 更新 API 配置 |
-| `GET` | `/api/conversations` | 加载会话 |
-| `POST` | `/api/conversations` | 保存会话 |
-| `GET` | `/api/shortcuts` | 加载快捷启动 |
-| `POST` | `/api/shortcuts` | 保存快捷启动 |
-| `PUT` | `/api/config/theme` | 保存主题 |
-| `GET` | `/api/config/theme` | 加载主题 |
-| `GET` | `/api/suggest?q=&engine=` | 搜索建议代理 |
-
----
+| 层 | 技术 |
+|---|---|
+| 前端 | Vue 3 + Element Plus + Vite + Electron |
+| 后端 | FastAPI + LangChain + LangGraph |
+| LLM | OpenAI 兼容 API（DeepSeek 等） |
+| 存储 | SQLite（agent checkpoint）+ JSON 文件 |
 
 ## 项目结构
 
 ```
 LLMD/
 ├── backend/
-│   ├── chat_api.py              FastAPI 入口
-│   ├── llm_chat.py              LLM 对话逻辑
-│   ├── config_manager.py        配置管理
-│   ├── conversation_store.py    会话持久化
-│   ├── config.json              用户 API 配置
-│   ├── conversations.txt        会话数据
-│   ├── shortcuts.json           快捷启动数据
-│   └── theme.json              主题偏好
-├── src/
-│   ├── main.js                  Vue 入口
-│   ├── App.vue                  根组件 + 全局交互 + 键盘快捷键
-│   ├── themes.js                5 套主题预设
-│   ├── api/index.js             后端 API 封装
-│   ├── storage/index.js         双通道持久化 (IPC + API)
-│   ├── components/
-│   │   ├── Sidebar.vue          侧边栏
-│   │   ├── QuickLaunch.vue      快捷启动面板
-│   │   ├── WelcomeScreen.vue    欢迎页
-│   │   ├── ChatWindow.vue       消息列表 + Markdown + 代码复制
-│   │   ├── ChatInput.vue        输入框
-│   │   └── SettingsModal.vue    设置 + 主题选择器
-│   └── styles/global.css        全局样式变量
-├── electron-main.js             Electron 主进程 (透明窗口 + IPC)
-├── preload.js                   IPC 桥接层
-├── vite.config.js
-└── package.json
+│   ├── main.py                  # 后端入口
+│   ├── state.py                 # 全局服务实例
+│   ├── api/                     # 路由层
+│   │   ├── chat.py              # /api/chat + /api/agent
+│   │   ├── config.py            # /api/config
+│   │   ├── mcp.py               # /api/mcp/*
+│   │   ├── conversations.py     # /api/conversations
+│   │   ├── shortcuts.py         # /api/shortcuts
+│   │   ├── suggest.py           # /api/suggest
+│   │   └── theme.py             # /api/config/theme
+│   ├── services/                # 业务逻辑
+│   │   ├── llm_chat.py          # LLM 直调
+│   │   ├── agent_chat.py        # Agent 对话（MCP + 记忆）
+│   │   └── prompt.py            # 系统提示词
+│   ├── managers/                # 配置与数据管理
+│   │   ├── config.py            # API 配置
+│   │   ├── mcp_config.py        # MCP 服务器管理
+│   │   └── conversation.py      # 会话存储
+│   ├── models/schemas.py        # Pydantic 模型
+│   ├── config/                  # 配置文件（不入库）
+│   └── data/                    # 运行时数据（不入库）
+├── src/                         # 前端源码
+│   ├── components/              # Vue 组件
+│   ├── composables/             # 业务 composables
+│   ├── styles/                  # CSS 样式
+│   ├── api/index.js             # API 封装
+│   ├── utils/markdown.js        # Markdown 渲染
+│   └── storage/index.js         # 本地存储
+├── electron-main.js             # Electron 主进程
+├── requirements.txt             # Python 依赖
+├── package.json                 # Node.js 依赖
+├── 启动LLMD.bat                 # 一键启动
+└── README.md
 ```
 
----
+## 快速开始
 
-## 主题配色
+### 1. 安装依赖
 
-| 方案 | 主色 / 辅色 | 风格 |
-|------|-----------|------|
-| 暖桃 | `#8CC0EB` `#FFF9D2` `#FFEBCC` | 温暖明亮 |
-| 深海 | `#5088C8` `#E8F0FE` | 冷静蓝调 |
-| 藕紫 | `#9878C8` `#F5F0FF` | 柔和紫调 |
-| 薄荷 | `#58B888` `#F0FFF5` | 清新绿色 |
-| 暮色 | `#6088C0` `#1E2230` | 深色护眼 |
+```bash
+# Python 后端（建议使用 conda 虚拟环境）
+conda create -n LLMD python=3.10 -y
+conda activate LLMD
+pip install -r requirements.txt
 
-设置面板中点击色块即时切换，自动存盘，下次启动自动应用。
+# 前端
+npm install
+```
 
----
+### 2. 配置
 
-## 支持的模型
+启动后在 **设置 → API 设置** 中填写：
 
-| 服务 | Base URL |
-|------|----------|
-| DeepSeek | `https://api.deepseek.com` |
-| OpenAI | `https://api.openai.com/v1` |
-| Ollama | `http://localhost:11434/v1` |
-| 其他兼容 | 任意 OpenAI 兼容地址 |
+- API Key（DeepSeek 或其他 OpenAI 兼容 API）
+- Base URL（默认 `https://api.deepseek.com`）
+- Model（如 `deepseek-v4-flash`）
 
----
+### 3. 启动
 
-## License
+```bash
+# 一键启动
+双击 启动LLMD.bat
 
-MIT
+# 或手动启动两个终端
+python backend/main.py      # 后端 :8054
+npm run dev                 # 前端 :5173
+```
+
+### 4. 访问
+
+- 前端：`http://localhost:5173`
+- 后端 docs：`http://127.0.0.1:8054/docs`
+
+## MCP 工具
+
+在 **设置 → MCP 设置** 中编辑 JSON 配置，支持注释和尾部逗号：
+
+```json
+{
+  "mcpServers": {
+    "smithery": {
+      "url": "https://mcp.smithery.run/xxx",
+      "transport": "streamable_http",
+      "headers": { "Authorization": "Bearer xxx" }
+    },
+    "local_tool": {
+      "command": "python",
+      "args": ["./my_mcp_server.py"],
+      "transport": "stdio"
+    }
+  }
+}
+```
+
+保存后 Agent 自动断开旧连接并重新加载所有 MCP 工具。
+
+## API 端点
+
+| 方法 | 路径 | 说明 |
+|---|---|---|
+| POST | `/api/chat` | LLM 直调（SSE 流式） |
+| POST | `/api/agent` | Agent 对话（MCP 工具 + 记忆，SSE 流式） |
+| GET | `/api/agent/tools` | 当前加载的 MCP 工具列表 |
+| GET/POST | `/api/config` | API 配置读写 |
+| GET/PUT | `/api/mcp/config` | MCP 配置 JSON 读写 |
+| GET/POST | `/api/mcp/servers` | MCP 服务器 CRUD |
+| GET/POST | `/api/conversations` | 会话持久化 |
+| GET/POST | `/api/shortcuts` | 快捷启动 |
+| GET/PUT | `/api/config/theme` | 主题配置 |
+| GET | `/api/suggest` | 搜索引擎建议代理 |
+
+## 快捷键
+
+| 键 | 功能 |
+|---|---|
+| `Ctrl+N` | 新建会话 |
+| `Delete` | 删除当前会话 |
+| `Enter` | 聚焦输入框 |
+| `Esc` | 取消输入框焦点 |
+| `Ctrl+←/→` | 折叠/展开侧边栏 |
+| `Ctrl+↑/↓` | 切换历史会话 |
