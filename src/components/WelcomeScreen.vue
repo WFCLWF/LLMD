@@ -1,13 +1,7 @@
 <template>
   <div class="welcome-screen">
     <div class="welcome-content">
-      <svg class="welcome-logo" viewBox="0 0 64 64" fill="none">
-        <rect width="64" height="64" rx="16" fill="#4f6ef7"/>
-        <path d="M16 25c0-4.97 4.03-9 9-9h14c4.97 0 9 4.03 9 9v6c0 4.97-4.03 9-9 9H25c-4.97 0-9-4.03-9-9v-6z" fill="white" opacity="0.95"/>
-        <circle cx="26" cy="28" r="2.6" fill="#4f6ef7"/>
-        <circle cx="38" cy="28" r="2.6" fill="#4f6ef7"/>
-        <path d="M25 35c1.6 1.6 4.2 2.4 7 2.4s5.4-.8 7-2.4" stroke="#4f6ef7" stroke-width="2.4" stroke-linecap="round"/>
-      </svg>
+      <img :src="logoImg" class="welcome-logo" alt="LLMD" />
       <h1 class="welcome-title">我是 LLMD</h1>
       <p class="welcome-desc">基于 DeepSeek 大模型的智能AI助手<br />可以帮你解答问题、编写代码、创作内容</p>
 
@@ -23,6 +17,7 @@
 
 <script setup>
 import { Document, Clock, Message, Guide } from '@element-plus/icons-vue';
+import logoImg from '@/assets/logo.jpg';
 defineEmits(['send']);
 const suggestions = [
   { prompt: '用Python写一个快速排序算法', icon: Document },
@@ -33,9 +28,10 @@ const suggestions = [
 </script>
 
 <style scoped>
-.welcome-screen { flex: 1; display: flex; align-items: center; justify-content: center; padding: 30px 18px; overflow-y: auto; }
+.welcome-screen { flex: 1; display: flex; align-items: center; justify-content: center; padding: 30px 18px; overflow-y: auto; animation: welcomeIn 0.5s ease-out; }
+@keyframes welcomeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
 .welcome-content { text-align: center; max-width: 520px; width: 100%; }
-.welcome-logo { width: 52px; height: 52px; margin-bottom: 16px; }
+.welcome-logo { width: 52px; height: 52px; border-radius: 12px; object-fit: cover; margin-bottom: 16px; }
 .welcome-title { font-size: 24px; font-weight: 700; margin-bottom: 6px; color: var(--text-primary); }
 .welcome-desc { font-size: 13px; color: var(--text-secondary); margin-bottom: 28px; line-height: 1.7; }
 

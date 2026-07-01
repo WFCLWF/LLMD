@@ -2,16 +2,9 @@
   <aside class="sidebar" :class="{ collapsed }">
     <div class="sidebar-header">
       <div class="logo-area">
-        <svg class="logo-icon" viewBox="0 0 32 32" fill="none">
-          <rect width="32" height="32" rx="8" fill="#4f6ef7"/>
-          <path d="M8 12.5C8 10.015 10.015 8 12.5 8h7c2.485 0 4.5 2.015 4.5 4.5v3c0 2.485-2.015 4.5-4.5 4.5h-7C10.015 20 8 17.985 8 15.5v-3z" fill="white" opacity="0.95"/>
-          <circle cx="13" cy="14" r="1.3" fill="#4f6ef7"/>
-          <circle cx="19" cy="14" r="1.3" fill="#4f6ef7"/>
-          <path d="M12.5 17.5c.8.8 2.1 1.2 3.5 1.2s2.7-.4 3.5-1.2" stroke="#4f6ef7" stroke-width="1.2" stroke-linecap="round"/>
-        </svg>
+        <img :src="logoImg" class="logo-icon" alt="LLMD" />
         <span class="logo-text">LLMD</span>
       </div>
-      <el-button class="new-chat-btn" @click="$emit('new-chat')" :icon="Plus">新对话</el-button>
     </div>
 
     <QuickLaunch />
@@ -57,8 +50,9 @@
 
 <script setup>
 import { ref, computed } from 'vue';
-import { Plus, ChatDotRound, Close, Setting } from '@element-plus/icons-vue';
+import { ChatDotRound, Close, Setting } from '@element-plus/icons-vue';
 import QuickLaunch from './QuickLaunch.vue';
+import logoImg from '@/assets/logo.jpg';
 import { ElMessageBox } from 'element-plus';
 
 const props = defineProps({ collapsed: Boolean, conversations: Array, currentConvId: String, backendStatus: String });
@@ -109,24 +103,14 @@ const statusLabel = computed(() => {
   background: var(--bg-sidebar); backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px);
   border-right: 1px solid var(--border-color);
   display: flex; flex-direction: column;
-  transition: width 0.2s, min-width 0.2s, opacity 0.2s; overflow: hidden; z-index: 100;
+  transition: width 0.3s cubic-bezier(0.4,0,0.2,1), min-width 0.3s, opacity 0.25s; overflow: hidden; z-index: 100;
 }
 .sidebar.collapsed { width: 0; min-width: 0; border-right: none; opacity: 0; pointer-events: none; }
 
 .sidebar-header { padding: 14px 12px 12px; border-bottom: 1px solid var(--border-color); }
 .logo-area { display: flex; align-items: center; gap: 8px; margin-bottom: 12px; }
-.logo-icon { width: 28px; height: 28px; flex-shrink: 0; }
+.logo-icon { width: 28px; height: 28px; border-radius: 6px; object-fit: cover; flex-shrink: 0; }
 .logo-text { font-size: 18px; font-weight: 800; letter-spacing: 0.5px; color: var(--text-primary); }
-
-.new-chat-btn {
-  width: 100%; font-size: 13px; height: 34px; font-weight: 600;
-  --el-button-bg-color: rgba(140,192,235,0.18);
-  --el-button-border-color: rgba(140,192,235,0.35);
-  --el-button-text-color: #5a9bc7;
-  --el-button-hover-bg-color: rgba(140,192,235,0.30);
-  --el-button-hover-border-color: rgba(140,192,235,0.50);
-  --el-button-hover-text-color: #4a8ab5;
-}
 
 .conversation-list { flex: 1; overflow-y: auto; padding: 6px; display: flex; flex-direction: column; }
 .conv-section-header { display: flex; justify-content: space-between; align-items: center; padding: 8px 8px 6px; }

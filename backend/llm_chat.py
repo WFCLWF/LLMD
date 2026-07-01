@@ -33,19 +33,29 @@ class LLMChat:
         if len(self.messages) > self.max_messages:
             self.messages.pop(0)
 
-    def chat(self, user_input):
-        self.add_message("user", user_input)
+    def _build_messages(self, user_input, history=None):
+        """构建消息列表：优先使用传入的历史上下文，否则用实例缓存"""
+        if history and len(history) > 0:
+            # 前端传了当前会话的完整历史，直接在此基础上追加新消息
+            msgs = [{"role": m["role"], "content": m["content"]} for m in history]
+            msgs.insert(0, {"role": "system", "content": self.messages[0]["content"]})
+        else:
+            msgs = list(self.messages)
+        msgs.append({"role": "user", "content": user_input})
+        return msgs
+
+    def chat(self, user_input, history=None):
+        msgs = self._build_messages(user_input, history)
         resp = self.client.chat.completions.create(
-            model=self.model, messages=self.messages, stream=False
+            model=self.model, messages=msgs, stream=False
         )
         result = resp.choices[0].message.content
-        self.add_message("assistant", result)
         return result
 
-    def chat_stream(self, user_input):
-        self.add_message("user", user_input)
+    def chat_stream(self, user_input, history=None):
+        msgs = self._build_messages(user_input, history)
         resp = self.client.chat.completions.create(
-            model=self.model, messages=self.messages, stream=True
+            model=self.model, messages=msgs, stream=True
         )
         full = ""
         for chunk in resp:
@@ -53,4 +63,3 @@ class LLMChat:
                 content = chunk.choices[0].delta.content
                 full += content
                 yield content
-        self.add_message("assistant", full)

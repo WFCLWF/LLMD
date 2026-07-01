@@ -12,6 +12,7 @@ from conversation_store import ConversationStore
 # 请求体
 class chat_request(pydantic.BaseModel):
     user_input: str
+    messages: list = []  # 可选：当前会话的历史消息列表
 
 
 # 配置请求体
@@ -68,8 +69,7 @@ async def suggest(q: str = Query(..., min_length=1), engine: str = Query(default
 @app.post("/api/chat")
 async def chat(chat_data: chat_request):
     def generate():
-        for chunk in llmchat.chat_stream(chat_data.user_input):
-            # 统一换行为 \r，避免 \n 被 SSE 协议当作行分隔符截断
+        for chunk in llmchat.chat_stream(chat_data.user_input, chat_data.messages):
             safe = chunk.replace('\r\n', '\r').replace('\n', '\r')
             yield f"data: {safe}\n\n"
 

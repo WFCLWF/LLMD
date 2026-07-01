@@ -5,7 +5,6 @@
       :conversations="conversations"
       :currentConvId="currentConvId"
       :backendStatus="backendStatus"
-      @new-chat="newConversation"
       @select-conv="selectConversation"
       @delete-conv="deleteConversation"
       @delete-selected="deleteSelectedConversations"
@@ -92,6 +91,11 @@ function handleKeydown(e) {
     e.preventDefault();
     setTimeout(() => chatInputRef.value?.focus(), 50);
     return;
+  }
+
+  // Ctrl+N：新建会话
+  if (e.key === 'n' && (e.ctrlKey || e.metaKey) && !inInput) {
+    e.preventDefault(); newConversation(); return;
   }
 
   // Delete：删除当前会话
@@ -212,7 +216,9 @@ async function handleSend(userText) {
 
   try {
     abortController = new AbortController();
-    const reader = await chatStream(userText);
+    // 发送当前会话的历史（排除本轮刚加的用户消息和空 AI 占位）
+    const history = conv ? conv.messages.slice(0, -2) : [];
+    const reader = await chatStream(userText, history);
     const decoder = new TextDecoder();
     let buffer = '';
 
@@ -300,12 +306,15 @@ function onMainClick() { if (!sidebarCollapsed.value) sidebarCollapsed.value = t
   background: rgba(140,192,235,0.45); backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
   cursor: pointer; z-index: 200; color: #fff;
-  transition: all 0.25s; border: 2px solid rgba(140,192,235,0.55);
+  transition: all 0.25s cubic-bezier(0.34,1.56,0.64,1);
+  border: 2px solid rgba(140,192,235,0.55);
+  animation: handleIn 0.4s 0.3s cubic-bezier(0.34,1.56,0.64,1) both;
 }
+@keyframes handleIn { from { opacity: 0; transform: translateY(-50%) translateX(-12px); } to { opacity: 1; transform: translateY(-50%) translateX(0); } }
 .pull-handle:hover {
   background: rgba(140,192,235,0.72); color: #fff;
   box-shadow: 0 2px 12px rgba(140,192,235,0.30);
-  transform: translateY(-50%) scale(1.1);
+  transform: translateY(-50%) scale(1.15);
 }
 
 .main-content {

@@ -7,7 +7,16 @@
   --radius-lg: 12px;
   --radius-xl: 16px;
   --transition: 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-slow: 0.35s cubic-bezier(0.4, 0, 0.2, 1);
   --input-max-width: 700px;
+}
+
+/* 主题切换过渡 */
+body {
+  transition: background 0.4s ease;
+}
+body * {
+  transition: background var(--transition), border-color var(--transition), color var(--transition), box-shadow var(--transition);
 }
 
 *, *::before, *::after {

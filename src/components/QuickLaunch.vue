@@ -65,9 +65,10 @@ async function launch(s) {
 .ql-icon {
   display: flex; flex-direction: column; align-items: center; gap: 2px;
   width: 46px; padding: 5px 2px; border-radius: 7px;
-  cursor: pointer; transition: all 0.15s;
+  cursor: pointer; transition: all 0.2s cubic-bezier(0.4,0,0.2,1);
   color: var(--text-secondary);
 }
+.ql-icon:active { transform: scale(0.92); }
 .ql-icon:hover { background: rgba(140,192,235,0.15); color: #5a9bc7; }
 .ql-add-btn {
   border: 1px dashed var(--border-color);

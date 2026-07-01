@@ -4,8 +4,9 @@
       <div v-for="(msg, idx) in messages" :key="idx" class="message" :class="msg.role">
         <div class="message-wrapper">
           <div class="role">
-            <span class="role-avatar">{{ msg.role === 'user' ? 'U' : 'AI' }}</span>
-            <span class="role-name">{{ msg.role === 'user' ? '你' : 'LLMD' }}</span>
+            <img v-if="msg.role === 'user'" :src="logoImg" class="role-avatar user-avatar" alt="我" />
+            <span v-else class="role-avatar">AI</span>
+            <span class="role-name">{{ msg.role === 'user' ? 'ww' : 'LLMD' }}</span>
           </div>
           <div v-if="msg.role === 'assistant' && !msg.content && isStreaming" class="thinking-dots">
             <span></span><span></span><span></span>
@@ -26,6 +27,7 @@
 <script setup>
 import { ref, nextTick, watch } from 'vue';
 import { ArrowDown } from '@element-plus/icons-vue';
+import logoImg from '@/assets/logo.jpg';
 
 const props = defineProps({ messages: Array, isStreaming: Boolean });
 
@@ -111,23 +113,25 @@ defineExpose({ scrollToBottom });
 <style scoped>
 .chat-window { flex: 1; overflow-y: auto; position: relative; }
 .messages-inner { max-width: 700px; margin: 0 auto; padding: 14px 32px 0; }
-.message { margin-bottom: 2px; }
+.message { margin-bottom: 2px; animation: msgIn 0.3s ease-out; }
+@keyframes msgIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
 .message-wrapper { padding: 8px 0; }
 .message.user .message-wrapper { display: flex; flex-direction: column; align-items: flex-end; }
 .role { display: flex; align-items: center; gap: 6px; margin-bottom: 4px; }
 .role-avatar { width: 24px; height: 24px; border-radius: 5px; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 600; flex-shrink: 0; }
 .message.user .role-avatar { background: var(--accent); color: #fff; }
 .message.assistant .role-avatar { background: rgba(140,192,235,0.18); color: #5a9bc7; }
+.user-avatar { object-fit: cover; padding: 0 !important; }
 .role-name { font-size: 12px; font-weight: 600; }
 .message-text { font-size: 14px; line-height: 1.65; word-wrap: break-word; }
 .message.user .message-text { background: var(--bg-user-msg); padding: 8px 14px; border-radius: 14px 4px 14px 14px; max-width: 85%; }
 .message.assistant .message-text { padding: 1px 0; }
 
-.thinking-dots { display: flex; align-items: center; gap: 4px; padding: 4px 0; }
-.thinking-dots span { width: 6px; height: 6px; border-radius: 50%; background: var(--accent); animation: think 1.4s ease-in-out infinite; }
-.thinking-dots span:nth-child(2) { animation-delay: 0.2s; }
-.thinking-dots span:nth-child(3) { animation-delay: 0.4s; }
-@keyframes think { 0%,80%,100%{opacity:0.3;transform:scale(0.8)} 40%{opacity:1;transform:scale(1)} }
+.thinking-dots { display: flex; align-items: center; gap: 5px; padding: 6px 0; }
+.thinking-dots span { width: 6px; height: 6px; border-radius: 50%; background: var(--accent); animation: bounce 1.2s ease-in-out infinite; }
+.thinking-dots span:nth-child(2) { animation-delay: 0.15s; }
+.thinking-dots span:nth-child(3) { animation-delay: 0.30s; }
+@keyframes bounce { 0%,100%{opacity:0.25;transform:translateY(0)} 50%{opacity:1;transform:translateY(-6px)} }
 
 .message-text :deep(pre) {
   background: var(--bg-code); border: 1px solid var(--border-color); border-radius: var(--radius-md);
@@ -165,11 +169,14 @@ defineExpose({ scrollToBottom });
   width: 30px; height: 30px; border-radius: 50%; border: 1px solid var(--border-color);
   background: var(--bg-card); backdrop-filter: blur(10px); color: var(--text-secondary);
   cursor: pointer; z-index: 10; display: flex; align-items: center; justify-content: center; transition: all 0.2s;
-  box-shadow: var(--shadow-sm);
+  box-shadow: var(--shadow-sm); animation: fadeUp 0.25s ease-out;
 }
-.scroll-bottom-btn:hover { background: var(--bg-card-hover); color: var(--text-primary); }
-.fade-enter-active,.fade-leave-active { transition: opacity 0.2s; }
-.fade-enter-from,.fade-leave-to { opacity: 0; }
+@keyframes fadeUp { from { opacity: 0; transform: translateX(-50%) translateY(8px); } to { opacity: 1; transform: translateX(-50%) translateY(0); } }
+.scroll-bottom-btn:hover { background: var(--bg-card-hover); color: var(--text-primary); transform: translateX(-50%) scale(1.08); }
+.fade-enter-active { transition: opacity 0.25s ease-out, transform 0.25s ease-out; }
+.fade-leave-active { transition: opacity 0.15s ease-in, transform 0.15s ease-in; }
+.fade-enter-from { opacity: 0; transform: translateY(8px); }
+.fade-leave-to { opacity: 0; transform: translateY(4px); }
 
 @media (max-width: 640px) { .messages-inner { padding: 10px 14px 0; } .message.user .message-text { max-width: 90%; } }
 </style>

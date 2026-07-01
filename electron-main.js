@@ -1,4 +1,4 @@
-const { app, BrowserWindow, ipcMain, dialog, shell } = require('electron');
+const { app, BrowserWindow, ipcMain, dialog, shell, nativeImage } = require('electron');
 const path = require('path');
 const fs = require('fs');
 
@@ -19,6 +19,10 @@ function createWindow() {
     },
     show: false,
   });
+
+  // 设置任务栏图标
+  const iconPath = path.join(__dirname, 'src', 'assets', 'logo.jpg');
+  try { if (fs.existsSync(iconPath)) win.setIcon(nativeImage.createFromPath(iconPath)); } catch {}
 
   win.once('ready-to-show', () => win.show());
 
