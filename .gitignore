@@ -27,6 +27,7 @@ chat_history.json
 conversations.txt
 backend/conversations.txt
 backend/shortcuts.json
+backend/theme.json
 
 # 系统文件
 Thumbs.db

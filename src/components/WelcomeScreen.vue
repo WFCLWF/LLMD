@@ -33,23 +33,23 @@ const suggestions = [
 </script>
 
 <style scoped>
-.welcome-screen { flex: 1; display: flex; align-items: center; justify-content: center; padding: 40px 20px; overflow-y: auto; }
-.welcome-content { text-align: center; max-width: 600px; width: 100%; }
-.welcome-logo { width: 64px; height: 64px; margin-bottom: 20px; }
-.welcome-title { font-size: 28px; font-weight: 700; margin-bottom: 8px; color: var(--text-primary); }
-.welcome-desc { font-size: 15px; color: var(--text-secondary); margin-bottom: 36px; line-height: 1.8; }
+.welcome-screen { flex: 1; display: flex; align-items: center; justify-content: center; padding: 30px 18px; overflow-y: auto; }
+.welcome-content { text-align: center; max-width: 520px; width: 100%; }
+.welcome-logo { width: 52px; height: 52px; margin-bottom: 16px; }
+.welcome-title { font-size: 24px; font-weight: 700; margin-bottom: 6px; color: var(--text-primary); }
+.welcome-desc { font-size: 13px; color: var(--text-secondary); margin-bottom: 28px; line-height: 1.7; }
 
-.suggestion-cards { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; text-align: left; }
+.suggestion-cards { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; text-align: left; }
 .suggestion-card {
-  display: flex; align-items: flex-start; gap: 10px; padding: 14px;
+  display: flex; align-items: flex-start; gap: 8px; padding: 12px;
   background: var(--bg-card); backdrop-filter: blur(10px);
   border: 1px solid var(--border-color); border-radius: var(--radius-md);
-  cursor: pointer; transition: all 0.2s; font-size: 14px; color: var(--text-secondary); line-height: 1.5; width: 100%;
+  cursor: pointer; transition: all 0.2s; font-size: 13px; color: var(--text-secondary); line-height: 1.5; width: 100%;
 }
 .suggestion-card:hover { background: var(--bg-card-hover); border-color: var(--accent); color: var(--text-primary); box-shadow: var(--shadow-sm); }
 .suggestion-icon {
-  flex-shrink: 0; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center;
-  background: rgba(79,110,247,0.08); border-radius: var(--radius-sm); color: var(--accent);
+  flex-shrink: 0; width: 28px; height: 28px; display: flex; align-items: center; justify-content: center;
+  background: rgba(140,192,235,0.15); border-radius: var(--radius-sm); color: #5a9bc7;
 }
 @media (max-width: 640px) { .suggestion-cards { grid-template-columns: 1fr; } }
 </style>

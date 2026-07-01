@@ -135,6 +135,7 @@ import json as _json
 from pathlib import Path as _Path
 
 _SHORTCUTS_PATH = _Path(__file__).parent / "shortcuts.json"
+_THEME_PATH = _Path(__file__).parent / "theme.json"
 
 class _shortcuts_body(pydantic.BaseModel):
     data: list = []
@@ -155,6 +156,28 @@ async def save_shortcuts(req: _shortcuts_body):
         return {"code": 200}
     except Exception:
         return {"code": 500}
+
+
+# ==================== 主题配置接口 ====================
+class _theme_body(pydantic.BaseModel):
+    theme: str = "warm"
+
+@app.put("/api/config/theme")
+async def save_theme(req: _theme_body):
+    try:
+        _THEME_PATH.write_text(_json.dumps({"theme": req.theme}), encoding="utf-8")
+        return {"code": 200}
+    except Exception:
+        return {"code": 500}
+
+@app.get("/api/config/theme")
+async def load_theme():
+    try:
+        if _THEME_PATH.exists():
+            return {"code": 200, "data": _json.loads(_THEME_PATH.read_text(encoding="utf-8"))}
+    except Exception:
+        pass
+    return {"code": 200, "data": {"theme": "warm"}}
 
 
 if __name__ == "__main__":

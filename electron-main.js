@@ -8,9 +8,10 @@ const SHORTCUTS_PATH = path.join(__dirname, 'backend', 'shortcuts.json');
 
 function createWindow() {
   const win = new BrowserWindow({
-    width: 1200, height: 800, minWidth: 680, minHeight: 480,
+    width: 860, height: 560, minWidth: 560, minHeight: 380,
     frame: false,
-    backgroundColor: '#f0f2f5',
+    transparent: true,
+    backgroundColor: '#00000000',
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
       contextIsolation: true,

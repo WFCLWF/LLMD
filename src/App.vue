@@ -13,12 +13,13 @@
       @open-settings="openSettings"
     />
 
-    <div class="main-content">
+    <div class="main-content" @click="onMainClick">
+      <!-- 侧边栏折叠时的拉出按钮 -->
+      <div v-if="sidebarCollapsed" class="pull-handle" @click.stop="sidebarCollapsed = false" title="展开侧边栏">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg>
+      </div>
       <!-- 顶部拖拽区 -->
       <div class="title-bar" @dblclick="toggleMaximize">
-        <button v-if="sidebarCollapsed" class="title-bar-btn" @click="sidebarCollapsed = false" title="展开侧边栏">
-          <el-icon :size="16"><Expand /></el-icon>
-        </button>
         <div class="drag-region"></div>
         <div class="window-controls">
           <button class="win-btn" @click="minimizeWindow" title="最小化">
@@ -52,8 +53,9 @@ import ChatInput from './components/ChatInput.vue';
 import SettingsModal from './components/SettingsModal.vue';
 import { chatStream, getConfig } from './api/index.js';
 import { loadFromStorage, saveToStorage } from './storage/index.js';
+import { applyTheme } from './themes.js';
 
-const sidebarCollapsed = ref(false);
+const sidebarCollapsed = ref(true);
 const showSettings = ref(false);
 const conversations = reactive([]);
 const currentConvId = ref(null);
@@ -66,10 +68,56 @@ let abortController = null;
 
 // 1. 异步恢复会话（不阻塞渲染，加载完成后自动刷新 UI）
 loadAndRestore();
+// 1.5 加载主题（localStorage 优先，后端配置兜底）
+initTheme();
 // 2. 检测后端连接（异步，带重试）
 initBackend();
-// 3. 启动后自动聚焦输入框
-onMounted(() => { setTimeout(() => chatInputRef.value?.focus(), 100); });
+// 3. 全局快捷键
+onMounted(() => {
+  window.addEventListener('keydown', handleKeydown);
+});
+
+function handleKeydown(e) {
+  const inInput = document.activeElement?.tagName === 'TEXTAREA';
+
+  // Esc：取消输入框焦点，不改变侧边栏
+  if (e.key === 'Escape') {
+    if (inInput) { e.preventDefault(); document.activeElement.blur(); }
+    return;
+  }
+
+  // Enter：非输入框内 → 聚焦输入框，不改变侧边栏
+  if (e.key === 'Enter' && !inInput && !e.ctrlKey && !e.metaKey) {
+    if (document.activeElement?.closest('button, input, select, [role="button"]')) return;
+    e.preventDefault();
+    setTimeout(() => chatInputRef.value?.focus(), 50);
+    return;
+  }
+
+  // Delete：删除当前会话
+  if (e.key === 'Delete' && !inInput && currentConvId.value) {
+    e.preventDefault();
+    deleteConversation(currentConvId.value);
+    return;
+  }
+
+  // Ctrl+方向键：仅非输入框时生效
+  if (inInput) return;
+  if (!e.ctrlKey && !e.metaKey) return;
+
+  if (e.key === 'ArrowLeft') { e.preventDefault(); sidebarCollapsed.value = true; }
+  else if (e.key === 'ArrowRight') { e.preventDefault(); sidebarCollapsed.value = false; }
+  else if (e.key === 'ArrowUp') { e.preventDefault(); navHistory(-1); }
+  else if (e.key === 'ArrowDown') { e.preventDefault(); navHistory(1); }
+}
+
+function navHistory(dir) {
+  if (conversations.length === 0) return;
+  let idx = conversations.findIndex(c => c.id === currentConvId.value);
+  if (idx === -1) idx = dir === -1 ? 0 : -1;
+  const next = (idx + dir + conversations.length) % conversations.length;
+  selectConversation(conversations[next].id);
+}
 // 4. 持久化工具：防抖保存（50ms，流式场景合并高频写入）
 let saveTimer = null;
 function scheduleSave() {
@@ -116,7 +164,6 @@ function newConversation() {
   currentConvId.value = conv.id;
   messages.length = 0;
   scheduleSave();
-  setTimeout(() => chatInputRef.value?.focus(), 50);
 }
 
 function selectConversation(id) {
@@ -127,8 +174,6 @@ function selectConversation(id) {
   messages.push(...conv.messages);
   scheduleSave();
   nextTick(() => chatWindowRef.value?.scrollToBottom());
-  // 延迟聚焦：等 Sidebar click 事件完全结束后再切焦点，避免被浏览器归还焦点覆盖
-  setTimeout(() => chatInputRef.value?.focus(), 50);
 }
 
 function deleteConversation(id) {
@@ -163,7 +208,7 @@ async function handleSend(userText) {
   messages.push(aiMsg);
   if (conv) conv.messages.push(aiMsg);
 
-  nextTick(() => { chatWindowRef.value?.scrollToBottom(); chatInputRef.value?.focus(); });
+  nextTick(() => chatWindowRef.value?.scrollToBottom());
 
   try {
     abortController = new AbortController();
@@ -197,8 +242,9 @@ async function handleSend(userText) {
   } finally {
     isStreaming.value = false;
     abortController = null;
-    scheduleSave();  // 流式结束/出错后最终存盘
+    scheduleSave();
     nextTick(() => chatWindowRef.value?.scrollToBottom());
+    setTimeout(() => chatInputRef.value?.focus(), 50);
   }
 }
 
@@ -213,27 +259,71 @@ async function openSettings() {
   showSettings.value = true;
 }
 
-function onConfigSaved() { initBackend(); }
+function onConfigSaved() { initBackend(); initTheme(); }
+
+/* 加载主题：localStorage 优先 → 后端配置兜底 → 默认 warm */
+async function initTheme() {
+  // 快速路径：localStorage
+  const saved = localStorage.getItem('llmd_theme');
+  if (saved && applyTheme(saved)) return;
+  // 后端兜底
+  try {
+    const cfg = await getConfig();
+    const t = cfg?.data?.app?.theme || cfg?.theme;
+    if (t) { applyTheme(t); localStorage.setItem('llmd_theme', t); return; }
+  } catch {}
+  applyTheme('warm');
+}
+
+/** 切换主题并持久化 */
+window.__switchTheme = async function (key) {
+  applyTheme(key);
+  localStorage.setItem('llmd_theme', key);
+  // 异步写入后端配置
+  try { await fetch('http://127.0.0.1:8054/api/config/theme', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ theme: key }) }); } catch {}
+};
+function onMainClick() { if (!sidebarCollapsed.value) sidebarCollapsed.value = true; }
 
 </script>
 
 <style scoped>
-.app-container { display: flex; height: 100vh; width: 100vw; overflow: hidden; }
+.app-container {
+  display: flex; height: 100vh; width: 100vw; overflow: hidden; border-radius: 12px;
+  position: relative; border: 2px solid var(--accent);
+  box-shadow: 0 0 0 1px rgba(0,0,0,0.08), 0 8px 32px rgba(0,0,0,0.18);
+}
+
+.pull-handle {
+  position: absolute; left: 6px; top: 50%; transform: translateY(-50%);
+  width: 28px; height: 28px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  background: rgba(140,192,235,0.45); backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  cursor: pointer; z-index: 200; color: #fff;
+  transition: all 0.25s; border: 2px solid rgba(140,192,235,0.55);
+}
+.pull-handle:hover {
+  background: rgba(140,192,235,0.72); color: #fff;
+  box-shadow: 0 2px 12px rgba(140,192,235,0.30);
+  transform: translateY(-50%) scale(1.1);
+}
 
 .main-content {
   flex: 1; display: flex; flex-direction: column; min-width: 0; height: 100vh;
-  position: relative; background: var(--bg-main);
+  position: relative;
+  background: var(--bg-main);
+  backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
 }
 
 .title-bar {
-  height: 38px; display: flex; align-items: center; flex-shrink: 0;
+  height: 32px; display: flex; align-items: center; flex-shrink: 0;
   -webkit-app-region: drag; user-select: none;
 }
 .drag-region { flex: 1; height: 100%; }
 
 .title-bar-btn {
-  -webkit-app-region: no-drag; width: 34px; height: 34px; margin-left: 4px;
-  background: none; border: none; border-radius: 8px;
+  -webkit-app-region: no-drag; width: 30px; height: 30px; margin-left: 2px;
+  background: none; border: none; border-radius: 6px;
   color: var(--text-secondary); cursor: pointer;
   display: flex; align-items: center; justify-content: center; transition: all 0.2s;
 }
@@ -241,7 +331,7 @@ function onConfigSaved() { initBackend(); }
 
 .window-controls { display: flex; -webkit-app-region: no-drag; }
 .win-btn {
-  width: 42px; height: 32px; background: none; border: none;
+  width: 36px; height: 28px; background: none; border: none;
   color: var(--text-secondary); cursor: pointer;
   display: flex; align-items: center; justify-content: center; transition: all 0.15s;
 }
