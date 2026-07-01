@@ -24,7 +24,7 @@ class ConfigManager:
         # 返回默认配置
         return {
             "api": {
-                "api_key": "sk-79bd394e57b24b4cb26c8e0d8162529f",
+                "api_key": "",
                 "base_url": "https://api.deepseek.com",
                 "model": "deepseek-v4-flash"
             },
