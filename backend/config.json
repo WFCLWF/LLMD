@@ -1,0 +1,14 @@
+{
+  "api": {
+    "api_key": "",
+    "base_url": "https://api.deepseek.com",
+    "model": "deepseek-v4-flash"
+  },
+  "chat": {
+    "messages_length": 30
+  },
+  "app": {
+    "name": "LLMD Chat",
+    "version": "0.1.0"
+  }
+}

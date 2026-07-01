@@ -1,0 +1,40 @@
+# 依赖包
+node_modules/
+venv/
+env/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+pip-log.txt
+pip-delete-this-directory.txt
+
+# IDE 和编辑器
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+*.code-workspace
+
+# 应用特定
+config.local.json
+.env
+.env.local
+chat_history.json
+conversations.txt
+backend/conversations.txt
+backend/shortcuts.json
+
+# 系统文件
+Thumbs.db
+.DS_Store
+
+.gitignore
+
+
+dist/
+
+backend/conversations.txt
