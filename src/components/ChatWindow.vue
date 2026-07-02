@@ -1,14 +1,18 @@
 <template>
-  <div class="chat-window" ref="chatEl" @scroll="onScroll" @click="onClick">
+  <div class="chat-window" ref="chatEl" @scroll="onScroll" @click="onClick" role="log" aria-label="对话消息" aria-live="polite">
     <div class="messages-inner">
-      <div v-for="(msg, idx) in messages" :key="idx" class="message" :class="msg.role">
+      <div
+        v-for="(msg, idx) in messages" :key="idx"
+        v-memo="[msg.content, msg.role, isStreaming && idx === messages.length - 1]"
+        class="message" :class="msg.role"
+      >
         <div class="message-wrapper">
           <div class="role">
-            <img v-if="msg.role === 'user'" :src="logoImg" class="role-avatar user-avatar" alt="我" />
-            <span v-else class="role-avatar">AI</span>
+            <img v-if="msg.role === 'user'" :src="logoImg" class="role-avatar user-avatar" alt="用户头像" />
+            <span v-else class="role-avatar" aria-hidden="true">AI</span>
             <span class="role-name">{{ msg.role === 'user' ? 'ww' : 'LLMD' }}</span>
           </div>
-          <div v-if="msg.role === 'assistant' && !msg.content && isStreaming" class="thinking-dots">
+          <div v-if="msg.role === 'assistant' && !msg.content && isStreaming" class="thinking-dots" aria-label="AI 正在思考">
             <span></span><span></span><span></span>
           </div>
           <div v-else-if="msg.content" class="message-text" v-html="renderMarkdown(msg.content)"></div>
@@ -17,7 +21,7 @@
       <div ref="bottomAnchor"></div>
     </div>
     <transition name="fade">
-      <button v-if="showScrollBtn" class="scroll-bottom-btn" @click="scrollToBottom(true)">
+      <button v-if="showScrollBtn" class="scroll-bottom-btn" @click="scrollToBottom(true)" aria-label="滚动到最新消息">
         <el-icon :size="16"><ArrowDown /></el-icon>
       </button>
     </transition>
@@ -52,7 +56,7 @@ function onScroll() {
   showScrollBtn.value = (el.scrollHeight - el.scrollTop - el.clientHeight) > 120;
 }
 
-// 代码复制
+/* ── 代码复制 ── */
 function onClick(e) {
   const btn = e.target.closest('.copy-code-btn');
   if (!btn) return;
@@ -67,8 +71,13 @@ function onClick(e) {
 
   navigator.clipboard.writeText(text).then(() => {
     btn.classList.add('copied');
-    setTimeout(() => btn.classList.remove('copied'), 2000);
+    btn.setAttribute('aria-label', '已复制');
+    setTimeout(() => {
+      btn.classList.remove('copied');
+      btn.setAttribute('aria-label', '复制代码');
+    }, 2000);
   }).catch(() => {
+    /* 降级：选中文本 */
     const range = document.createRange();
     range.selectNodeContents(code);
     const sel = window.getSelection();

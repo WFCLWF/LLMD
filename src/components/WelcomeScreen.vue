@@ -1,15 +1,37 @@
 <template>
   <div class="welcome-screen">
     <div class="welcome-content">
-      <img :src="logoImg" class="welcome-logo" alt="LLMD" />
-      <h1 class="welcome-title">我是 LLMD</h1>
+      <img :src="logoImg" class="welcome-logo" alt="LLMD Logo" />
+      <p class="welcome-subtitle">AI-POWERED ASSISTANT</p>
+      <h1 class="welcome-title">我是 <span class="welcome-title-accent">LLMD</span></h1>
       <p class="welcome-desc">基于 DeepSeek 大模型的智能AI助手<br />可以帮你解答问题、编写代码、创作内容</p>
 
-      <div class="suggestion-cards">
-        <div v-for="card in suggestions" :key="card.prompt" class="suggestion-card" @click="$emit('send', card.prompt)">
-          <div class="suggestion-icon"><el-icon :size="20"><component :is="card.icon" /></el-icon></div>
+      <div class="suggestion-cards" role="list" aria-label="快捷建议">
+        <div
+          v-for="card in suggestions" :key="card.prompt"
+          class="suggestion-card" role="listitem"
+          tabindex="0"
+          @click="$emit('send', card.prompt)"
+          @keydown.enter="$emit('send', card.prompt)"
+          @keydown.space.prevent="$emit('send', card.prompt)"
+        >
+          <div class="suggestion-icon" aria-hidden="true">
+            <el-icon :size="20"><component :is="card.icon" /></el-icon>
+          </div>
           <span>{{ card.prompt }}</span>
         </div>
+      </div>
+
+      <div class="welcome-shortcuts" aria-label="快捷键提示">
+        <span class="shortcut-badge">
+          <kbd class="shortcut-key">Ctrl+N</kbd> 新建会话
+        </span>
+        <span class="shortcut-badge">
+          <kbd class="shortcut-key">Enter</kbd> 聚焦输入
+        </span>
+        <span class="shortcut-badge">
+          <kbd class="shortcut-key">Ctrl+←→</kbd> 侧边栏
+        </span>
       </div>
     </div>
   </div>

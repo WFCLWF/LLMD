@@ -19,7 +19,9 @@ export function useSettings(emit) {
 
   // 主题
   const themeList = Object.entries(themes).map(([key, t]) => ({
-    key, label: t.label, dot: t.vars['--accent'],
+    key, label: t.label,
+    dot: t.vars['--accent'],
+    gradient: t.vars['--accent-gradient'],
   }));
   const selectedTheme = ref(currentThemeKey());
 

@@ -39,7 +39,7 @@ export function renderMarkdown(text) {
     const { lang, code } = codeBlocks[idx];
     const langLabel = lang ? `<span class="code-lang">${lang}</span>` : '';
     const codeHtml = code.replace(/\n/g, '<br>');
-    return `<pre>${langLabel}<button class="copy-code-btn" title="复制代码">${COPY_ICON}${CHECK_ICON}</button><code>${codeHtml}</code></pre>`;
+    return `<pre>${langLabel}<button class="copy-code-btn" title="复制代码" aria-label="复制代码">${COPY_ICON}${CHECK_ICON}</button><code>${codeHtml}</code></pre>`;
   });
 
   return html;

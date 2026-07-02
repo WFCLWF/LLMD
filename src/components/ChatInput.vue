@@ -3,11 +3,13 @@
     <div class="input-wrapper">
       <textarea ref="textareaRef" v-model="inputText" class="chat-input"
         :placeholder="disabled ? 'AI 正在回复...' : '给 LLMD 发送消息'"
-        :disabled="disabled" rows="1" @keydown="onKeydown" @input="autoResize"></textarea>
-      <button v-if="isStreaming" class="stop-btn" @click="$emit('stop')" title="停止生成">
+        :disabled="disabled" rows="1"
+        aria-label="输入消息"
+        @keydown="onKeydown" @input="autoResize"></textarea>
+      <button v-if="isStreaming" class="stop-btn" @click="$emit('stop')" title="停止生成" aria-label="停止生成回复">
         <el-icon :size="18"><VideoPause /></el-icon>
       </button>
-      <button v-else class="send-btn" :disabled="!inputText.trim() || disabled" @click="send" title="发送">
+      <button v-else class="send-btn" :disabled="!inputText.trim() || disabled" @click="send" title="发送消息" :aria-label="!inputText.trim() ? '请输入内容后发送' : '发送消息'">
         <el-icon :size="20"><Promotion /></el-icon>
       </button>
     </div>
@@ -33,6 +35,7 @@ function autoResize() {
 }
 function onKeydown(e) {
   if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send(); }
+  /* Shift+Enter 换行（默认行为，无需处理） */
 }
 function send() {
   const text = inputText.value.trim();

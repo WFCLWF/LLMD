@@ -1,32 +1,38 @@
 <template>
   <el-dialog :model-value="visible" @update:model-value="emit('update:visible', $event)"
     title="设置" width="520px" append-to-body :close-on-click-modal="true"
-    :close-on-press-escape="true" @open="onOpen" destroy-on-close>
+    :close-on-press-escape="true" @open="onOpen" destroy-on-close
+    aria-label="设置对话框">
     <el-tabs v-model="activeTab">
       <!-- ===== API 设置 ===== -->
       <el-tab-pane label="API 设置" name="api">
         <el-form label-position="top" :model="form" ref="formRef" :rules="rules" class="settings-form">
           <el-form-item label="API Key" prop="api_key">
-            <el-input v-model="form.api_key" type="password" show-password placeholder="sk-..." />
+            <el-input v-model="form.api_key" type="password" show-password placeholder="sk-..." autocomplete="off" />
           </el-form-item>
           <el-form-item label="Base URL" prop="base_url">
-            <el-input v-model="form.base_url" placeholder="https://api.deepseek.com" />
+            <el-input v-model="form.base_url" placeholder="https://api.deepseek.com" autocomplete="off" />
           </el-form-item>
           <el-form-item label="Model" prop="model">
-            <el-input v-model="form.model" placeholder="deepseek-v4-flash" />
+            <el-input v-model="form.model" placeholder="deepseek-v4-flash" autocomplete="off" />
           </el-form-item>
         </el-form>
       </el-tab-pane>
 
       <!-- ===== 系统配色 ===== -->
       <el-tab-pane label="系统配色" name="theme">
-        <div class="theme-grid">
+        <div class="theme-grid" role="radiogroup" aria-label="选择主题配色">
           <div v-for="t in themeList" :key="t.key"
             class="theme-card" :class="{ active: selectedTheme === t.key }"
-            @click="switchTheme(t.key)">
-            <span class="theme-dot" :style="{ background: t.dot }"></span>
+            role="radio" :aria-checked="selectedTheme === t.key"
+            tabindex="0"
+            @click="switchTheme(t.key)"
+            @keydown.enter="switchTheme(t.key)"
+            @keydown.space.prevent="switchTheme(t.key)"
+          >
+            <span class="theme-dot" :style="{ background: t.gradient }" aria-hidden="true"></span>
             <span class="theme-name">{{ t.label }}</span>
-            <span v-if="selectedTheme === t.key" class="theme-check">✓</span>
+            <span v-if="selectedTheme === t.key" class="theme-check" aria-hidden="true">✓</span>
           </div>
         </div>
       </el-tab-pane>
@@ -49,9 +55,10 @@
             class="mcp-editor"
             :class="{ 'has-error': jsonError }"
             placeholder='{ "mcpServers": { ... } }'
+            aria-label="MCP 配置 JSON 编辑器"
             @blur="validate"
           />
-          <p v-if="jsonError" class="mcp-error">{{ jsonError }}</p>
+          <p v-if="jsonError" class="mcp-error" role="alert">{{ jsonError }}</p>
         </div>
       </el-tab-pane>
     </el-tabs>
